@@ -306,11 +306,23 @@
         }
 
         function handleRotation(event) {
-            // Utilise le cap magnétique (iOS) ou l'orientation alpha (Android)
-            let heading = event.webkitCompassHeading || (360 - event.alpha);
-            if (heading !== undefined) {
+            // 1. Calcul du cap (Nord) selon le téléphone
+            let heading = null;
+
+            if (event.webkitCompassHeading) {
+                // iOS (Donne le nord magnétique directement)
+                heading = event.webkitCompassHeading;
+            } else if (event.alpha !== null) {
+                // Android (On tente une conversion simple)
+                heading = 360 - event.alpha;
+            }
+
+            // 2. Application de la rotation si on a une donnée valide
+            if (heading !== null) {
+                // CORRECTION ICI : On retire le signe négatif. 
+                // Pour que la flèche pointe la cible, on fait (Cible - Cap actuel)
                 const rotation = qiblaAngle - heading;
-                compass.style.transform = `rotate(${-rotation}deg)`;
+                compass.style.transform = `rotate(${rotation}deg)`;
             }
         }
 
