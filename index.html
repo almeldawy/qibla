@@ -22,6 +22,7 @@
             --text-main: #f8fafc;
             --text-dim: #94a3b8;
             --success: #10b981;
+            --warning: #f59e0b;
             --ring-color: rgba(212, 175, 55, 0.2);
         }
 
@@ -173,12 +174,16 @@
             margin-top: 10px;
             display: none;
         }
+
+        .low-precision {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
     </style>
 </head>
 <body>
 
     <button class="theme-toggle" id="themeBtn" aria-label="Changer de thème">
-        <!-- Icône Lune/Soleil SVG -->
         <svg id="themeIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
@@ -202,8 +207,8 @@
     <div class="info-panel">
         <span class="label">Direction de la Kaaba</span>
         <span class="angle-value" id="qibla-display">--°</span>
-        <div id="status-text" style="font-size: 0.8rem; color: var(--text-dim);">Prêt pour localisation</div>
-        <div id="precision" class="precision-tag">GPS Actif</div>
+        <div id="status-text" style="font-size: 0.8rem; color: var(--text-dim);">En attente du signal GPS...</div>
+        <div id="precision" class="precision-tag">Précision : -- m</div>
         
         <div style="margin-top: 25px;">
             <button id="startBtn">ACTIVER LES CAPTEURS</button>
@@ -211,22 +216,18 @@
     </div>
 
     <script>
-        // --- GESTION DU THÈME (Mode Clair / Sombre) ---
+        // --- GESTION DU THÈME ---
         const themeBtn = document.getElementById('themeBtn');
         const themeIcon = document.getElementById('themeIcon');
         
-        // Fonction pour changer l'icône
         function updateThemeIcon(isLight) {
             if (isLight) {
-                // Icône Soleil
                 themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
             } else {
-                // Icône Lune
                 themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
             }
         }
 
-        // Au chargement, on vérifie le "Post-it" (localStorage)
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light') {
             document.documentElement.setAttribute('data-theme', 'light');
@@ -246,7 +247,7 @@
             }
         });
 
-        // --- LOGIQUE DE LA BOUSSOLE ---
+        // --- LOGIQUE DE LA BOUSSOLE ET GPS HAUTE PRÉCISION ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').catch(err => console.error('Erreur SW:', err));
@@ -261,6 +262,7 @@
 
         const KAABA = { lat: 21.422487, lng: 39.826206 };
         let qiblaAngle = 0;
+        let watchId = null;
 
         function getQiblaAngle(lat, lng) {
             const phi1 = lat * Math.PI / 180;
@@ -271,20 +273,40 @@
             return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
         }
 
-        function initApp() {
+        function startTracking() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    qiblaAngle = getQiblaAngle(pos.coords.latitude, pos.coords.longitude);
+                // watchPosition suit l'utilisateur et affine la précision
+                watchId = navigator.geolocation.watchPosition(pos => {
+                    const { latitude, longitude, accuracy } = pos.coords;
+                    
+                    qiblaAngle = getQiblaAngle(latitude, longitude);
                     qiblaDisplay.innerText = Math.round(qiblaAngle) + "°";
-                    statusText.innerText = "Position optimisée";
+                    
+                    // Mise à jour de l'affichage de la précision
+                    precisionTag.innerText = `Précision : ±${Math.round(accuracy)}m`;
                     precisionTag.style.display = "inline-block";
-                }, () => {
-                    statusText.innerText = "Erreur GPS : Accès refusé";
+                    
+                    if (accuracy > 50) {
+                        statusText.innerText = "Signal faible (recherche...)";
+                        precisionTag.classList.add('low-precision');
+                    } else {
+                        statusText.innerText = "Signal optimal";
+                        precisionTag.classList.remove('low-precision');
+                    }
+                }, 
+                (err) => {
+                    statusText.innerText = "Erreur GPS : " + err.message;
+                }, 
+                {
+                    enableHighAccuracy: true, // Force l'usage du vrai GPS satellite
+                    timeout: 10000,
+                    maximumAge: 0
                 });
             }
         }
 
         function handleRotation(event) {
+            // Utilise le cap magnétique (iOS) ou l'orientation alpha (Android)
             let heading = event.webkitCompassHeading || (360 - event.alpha);
             if (heading !== undefined) {
                 const rotation = qiblaAngle - heading;
@@ -293,7 +315,7 @@
         }
 
         startBtn.addEventListener('click', async () => {
-            initApp();
+            startTracking();
             if (typeof DeviceOrientationEvent.requestPermission === 'function') {
                 try {
                     const permission = await DeviceOrientationEvent.requestPermission();
