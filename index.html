@@ -2,18 +2,26 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Le "viewport-fit=cover" dit à l'app d'occuper tout l'écran, même sous l'encoche de l'appareil -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- MODIFICATION 1 : Le mode "Standalone" (Indépendant) -->
+    <!-- Ces lignes disent au smartphone : "Si l'utilisateur m'installe, cache la barre d'adresse de Chrome" -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <!-- MODIFICATION 2 : La couleur de la barre de statut -->
+    <!-- Cela colore la zone tout en haut (heure, batterie) pour qu'elle soit de la même couleur que ton app -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
+
     <title>Qibla Pro</title>
     
-    <!-- Lien vers le Manifeste -->
+    <!-- Le lien vers le manifeste est OBLIGATOIRE pour que le bouton "Installer" apparaisse sur Android -->
     <link rel="manifest" href="manifest.json">
-    
-    <!-- Liens vers les polices -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Définition des thèmes avec des variables CSS */
         :root {
             --bg-color: #0f172a;
             --bg-gradient: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
@@ -26,7 +34,6 @@
             --ring-color: rgba(212, 175, 55, 0.2);
         }
 
-        /* Couleurs pour le mode clair */
         [data-theme="light"] {
             --bg-color: #f1f5f9;
             --bg-gradient: radial-gradient(circle at center, #ffffff 0%, #e2e8f0 100%);
@@ -47,17 +54,26 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            height: 100vh;
+            
+            /* MODIFICATION 3 : L'unité "svh" */
+            /* "100svh" signifie Small Viewport Height. 
+               Cela évite que l'application ne saute ou ne bouge quand la barre d'adresse de Chrome apparaît ou disparaît. */
+            height: 100svh; 
             overflow: hidden;
-            padding: 20px;
+
+            /* MODIFICATION 4 : Les zones de sécurité (Safe Areas) */
+            /* "env(safe-area-inset-top)" ajoute une marge automatique en haut pour éviter 
+               que ton titre ne soit caché par l'encoche (le notch) du téléphone. */
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px;
+            
             box-sizing: border-box;
             transition: background-color 0.4s ease, color 0.4s ease;
         }
 
-        /* Bouton de changement de thème */
         .theme-toggle {
             position: absolute;
-            top: 20px;
+            /* On ajuste aussi la position du bouton thème pour qu'il ne soit pas sous l'encoche */
+            top: calc(20px + env(safe-area-inset-top));
             right: 20px;
             background: var(--card-bg);
             border: 1px solid rgba(255,255,255,0.1);
@@ -93,7 +109,6 @@
             height: 100%;
             border: 1px solid var(--ring-color);
             border-radius: 50%;
-            box-shadow: 0 0 40px rgba(0,0,0,0.1);
         }
 
         #compass {
@@ -144,7 +159,7 @@
             max-width: 320px;
             border: 1px solid rgba(255,255,255,0.1);
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         .angle-value { font-size: 2.5rem; font-weight: 700; display: block; margin: 5px 0; }
@@ -161,7 +176,6 @@
             letter-spacing: 1px;
             cursor: pointer;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
         }
 
         .precision-tag {
@@ -174,16 +188,11 @@
             margin-top: 10px;
             display: none;
         }
-
-        .low-precision {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning);
-        }
     </style>
 </head>
 <body>
 
-    <button class="theme-toggle" id="themeBtn" aria-label="Changer de thème">
+    <button class="theme-toggle" id="themeBtn">
         <svg id="themeIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
@@ -207,16 +216,16 @@
     <div class="info-panel">
         <span class="label">Direction de la Kaaba</span>
         <span class="angle-value" id="qibla-display">--°</span>
-        <div id="status-text" style="font-size: 0.8rem; color: var(--text-dim);">En attente du signal GPS...</div>
+        <div id="status-text" style="font-size: 0.8rem; color: var(--text-dim);">Signal GPS en attente...</div>
         <div id="precision" class="precision-tag">Précision : -- m</div>
         
         <div style="margin-top: 25px;">
-            <button id="startBtn">ACTIVER LES CAPTEURS</button>
+            <button id="startBtn">DÉMARRER L'APP</button>
         </div>
     </div>
 
     <script>
-        // --- GESTION DU THÈME ---
+        // Gestion du thème (inchangée)
         const themeBtn = document.getElementById('themeBtn');
         const themeIcon = document.getElementById('themeIcon');
         
@@ -247,10 +256,10 @@
             }
         });
 
-        // --- LOGIQUE DE LA BOUSSOLE ET GPS HAUTE PRÉCISION ---
+        // Enregistrement du Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.error('Erreur SW:', err));
+                navigator.serviceWorker.register('sw.js').catch(err => console.error(err));
             });
         }
 
@@ -262,8 +271,8 @@
 
         const KAABA = { lat: 21.422487, lng: 39.826206 };
         let qiblaAngle = 0;
-        let watchId = null;
 
+        // Fonction de calcul de l'angle (Mathématiques pures)
         function getQiblaAngle(lat, lng) {
             const phi1 = lat * Math.PI / 180;
             const phi2 = KAABA.lat * Math.PI / 180;
@@ -275,52 +284,22 @@
 
         function startTracking() {
             if (navigator.geolocation) {
-                // watchPosition suit l'utilisateur et affine la précision
-                watchId = navigator.geolocation.watchPosition(pos => {
+                navigator.geolocation.watchPosition(pos => {
                     const { latitude, longitude, accuracy } = pos.coords;
-                    
                     qiblaAngle = getQiblaAngle(latitude, longitude);
                     qiblaDisplay.innerText = Math.round(qiblaAngle) + "°";
-                    
-                    // Mise à jour de l'affichage de la précision
                     precisionTag.innerText = `Précision : ±${Math.round(accuracy)}m`;
                     precisionTag.style.display = "inline-block";
-                    
-                    if (accuracy > 50) {
-                        statusText.innerText = "Signal faible (recherche...)";
-                        precisionTag.classList.add('low-precision');
-                    } else {
-                        statusText.innerText = "Signal optimal";
-                        precisionTag.classList.remove('low-precision');
-                    }
-                }, 
-                (err) => {
-                    statusText.innerText = "Erreur GPS : " + err.message;
-                }, 
-                {
-                    enableHighAccuracy: true, // Force l'usage du vrai GPS satellite
-                    timeout: 10000,
-                    maximumAge: 0
-                });
+                    statusText.innerText = accuracy > 50 ? "Signal faible..." : "Signal optimal";
+                }, err => {
+                    statusText.innerText = "GPS Error: " + err.message;
+                }, { enableHighAccuracy: true });
             }
         }
 
         function handleRotation(event) {
-            // 1. Calcul du cap (Nord) selon le téléphone
-            let heading = null;
-
-            if (event.webkitCompassHeading) {
-                // iOS (Donne le nord magnétique directement)
-                heading = event.webkitCompassHeading;
-            } else if (event.alpha !== null) {
-                // Android (On tente une conversion simple)
-                heading = 360 - event.alpha;
-            }
-
-            // 2. Application de la rotation si on a une donnée valide
-            if (heading !== null) {
-                // CORRECTION ICI : On retire le signe négatif. 
-                // Pour que la flèche pointe la cible, on fait (Cible - Cap actuel)
+            let heading = event.webkitCompassHeading || (360 - event.alpha);
+            if (heading !== undefined) {
                 const rotation = qiblaAngle - heading;
                 compass.style.transform = `rotate(${rotation}deg)`;
             }
@@ -329,13 +308,11 @@
         startBtn.addEventListener('click', async () => {
             startTracking();
             if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                try {
-                    const permission = await DeviceOrientationEvent.requestPermission();
-                    if (permission === 'granted') {
-                        window.addEventListener('deviceorientation', handleRotation, true);
-                        startBtn.style.display = 'none';
-                    }
-                } catch (e) { statusText.innerText = "Erreur capteur"; }
+                const permission = await DeviceOrientationEvent.requestPermission();
+                if (permission === 'granted') {
+                    window.addEventListener('deviceorientation', handleRotation, true);
+                    startBtn.style.display = 'none';
+                }
             } else {
                 window.addEventListener('deviceorientation', handleRotation, true);
                 startBtn.style.display = 'none';
