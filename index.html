@@ -2,21 +2,21 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <!-- viewport-fit=cover : utilise tout l'écran, même autour de la caméra frontale -->
+    <!-- MODIF 1 : "viewport-fit=cover" permet à l'interface d'occuper tout l'écran, même sous la barre de statut (heure/batterie) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- Ces balises disent au téléphone d'autoriser le mode "Plein écran" -->
+    <!-- MODIF 2 : Ces balises indiquent aux systèmes mobiles que ce site peut se comporter comme une application autonome -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     
-    <!-- Couleur de la barre de batterie/heure en haut -->
+    <!-- MODIF 3 : On définit la couleur de la barre de statut pour qu'elle se fonde dans le design de notre application -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
 
     <title>Qibla Pro</title>
     
-    <!-- On ajoute "?v=2" pour forcer Chrome à recharger les nouveaux réglages du manifeste -->
-    <link rel="manifest" href="manifest.json?v=2">
+    <!-- Le manifeste est crucial : il contient l'instruction "display: standalone" qui retire la barre d'adresse Chrome -->
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
     
     <style>
@@ -53,19 +53,21 @@
             align-items: center;
             justify-content: space-between;
             
-            /* svh = stable sur mobile, ne saute pas quand la barre d'adresse bouge */
+            /* MODIF 4 : "100svh" (Small Viewport Height) garantit que l'app fait pile la taille de l'écran 
+               sans être décalée par l'apparition ou la disparition de la barre d'adresse */
             height: 100svh; 
             overflow: hidden;
 
-            /* Marges de sécurité pour éviter que le texte soit caché par l'encoche du téléphone */
+            /* MODIF 5 : Les "safe-area-inset" ajoutent des marges pour éviter que le contenu ne soit 
+               caché par l'encoche de l'appareil ou les boutons de navigation système */
             padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px;
-            
             box-sizing: border-box;
             transition: background-color 0.4s ease, color 0.4s ease;
         }
 
         .theme-toggle {
             position: absolute;
+            /* On ajuste aussi la position du bouton thème avec la zone de sécurité haute */
             top: calc(20px + env(safe-area-inset-top));
             right: 20px;
             background: var(--card-bg);
@@ -209,16 +211,16 @@
     <div class="info-panel">
         <span class="label">Direction de la Kaaba</span>
         <span class="angle-value" id="qibla-display">--°</span>
-        <div id="status-text" style="font-size: 0.8rem; color: var(--text-dim);">Signal GPS en attente...</div>
+        <div id="status-text" style="font-size: 0.8rem; color: var(--text-dim);">Recherche du signal...</div>
         <div id="precision" class="precision-tag">Précision : -- m</div>
         
         <div style="margin-top: 25px;">
-            <button id="startBtn">DÉMARRER L'APP</button>
+            <button id="startBtn">DÉMARRER</button>
         </div>
     </div>
 
     <script>
-        // Logique du thème
+        // --- GESTION DU THÈME ---
         const themeBtn = document.getElementById('themeBtn');
         const themeIcon = document.getElementById('themeIcon');
         
@@ -249,7 +251,7 @@
             }
         });
 
-        // Enregistrement du Service Worker
+        // --- LOCALISATION & BOUSSOLE ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').catch(err => console.error(err));
@@ -282,9 +284,9 @@
                     qiblaDisplay.innerText = Math.round(qiblaAngle) + "°";
                     precisionTag.innerText = `Précision : ±${Math.round(accuracy)}m`;
                     precisionTag.style.display = "inline-block";
-                    statusText.innerText = accuracy > 50 ? "Signal faible..." : "Signal optimal";
+                    statusText.innerText = accuracy > 50 ? "Précision faible" : "Position acquise";
                 }, err => {
-                    statusText.innerText = "GPS Error: " + err.message;
+                    statusText.innerText = "Erreur GPS: " + err.message;
                 }, { enableHighAccuracy: true });
             }
         }
