@@ -1,317 +1,327 @@
-<!DOCTYPE html>
+!DOCTYPE html>
+
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <!-- MODIF 1 : "viewport-fit=cover" permet à l'interface d'occuper tout l'écran, même sous la barre de statut (heure/batterie) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <!-- MODIF 2 : Ces balises indiquent aux systèmes mobiles que ce site peut se comporter comme une application autonome -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    
-    <!-- MODIF 3 : On définit la couleur de la barre de statut pour qu'elle se fonde dans le design de notre application -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0f172a">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Indispensable pour la couleur de la barre d'état sur Android -->
+<meta name="theme-color" content="#0f172a">
+<title>Qibla Pro</title>
 
-    <title>Qibla Pro</title>
-    
-    <!-- Le manifeste est crucial : il contient l'instruction "display: standalone" qui retire la barre d'adresse Chrome -->
-    <link rel="manifest" href="manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --bg-gradient: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --accent-gold: #d4af37;
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --ring-color: rgba(212, 175, 55, 0.2);
-        }
+<!-- L'ÉTIQUETTE CRUCIALE : Elle doit pointer exactement vers ton fichier manifest.json -->
+<link rel="manifest" href="manifest.json">
 
-        [data-theme="light"] {
-            --bg-color: #f1f5f9;
-            --bg-gradient: radial-gradient(circle at center, #ffffff 0%, #e2e8f0 100%);
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --accent-gold: #b8860b;
-            --text-main: #1e293b;
-            --text-dim: #64748b;
-            --ring-color: rgba(184, 134, 11, 0.2);
-        }
+<!-- Icône de secours pour les navigateurs mobiles -->
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2823/2823023.png">
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            background-image: var(--bg-gradient);
-            color: var(--text-main);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            
-            /* MODIF 4 : "100svh" (Small Viewport Height) garantit que l'app fait pile la taille de l'écran 
-               sans être décalée par l'apparition ou la disparition de la barre d'adresse */
-            height: 100svh; 
-            overflow: hidden;
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
 
-            /* MODIF 5 : Les "safe-area-inset" ajoutent des marges pour éviter que le contenu ne soit 
-               caché par l'encoche de l'appareil ou les boutons de navigation système */
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px;
-            box-sizing: border-box;
-            transition: background-color 0.4s ease, color 0.4s ease;
-        }
+<style>
+    :root {
+        --bg-color: #0f172a;
+        --bg-gradient: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        --card-bg: rgba(30, 41, 59, 0.7);
+        --accent-gold: #d4af37;
+        --text-main: #f8fafc;
+        --text-dim: #94a3b8;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --ring-color: rgba(212, 175, 55, 0.2);
+    }
 
-        .theme-toggle {
-            position: absolute;
-            /* On ajuste aussi la position du bouton thème avec la zone de sécurité haute */
-            top: calc(20px + env(safe-area-inset-top));
-            right: 20px;
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--accent-gold);
-            backdrop-filter: blur(5px);
-            z-index: 100;
-        }
+    [data-theme="light"] {
+        --bg-color: #f1f5f9;
+        --bg-gradient: radial-gradient(circle at center, #ffffff 0%, #e2e8f0 100%);
+        --card-bg: rgba(255, 255, 255, 0.8);
+        --accent-gold: #b8860b;
+        --text-main: #1e293b;
+        --text-dim: #64748b;
+        --ring-color: rgba(184, 134, 11, 0.2);
+    }
 
-        .header { text-align: center; margin-top: 40px; }
-        h1 { font-weight: 300; letter-spacing: 4px; text-transform: uppercase; font-size: 1.2rem; margin: 0; color: var(--accent-gold); }
-        .instruction { font-size: 0.85rem; color: var(--text-dim); margin-top: 8px; }
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-color);
+        background-image: var(--bg-gradient);
+        color: var(--text-main);
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        height: 100vh;
+        overflow: hidden;
+        padding: 20px;
+        box-sizing: border-box;
+        transition: background-color 0.4s ease, color 0.4s ease;
+    }
 
-        .compass-area {
-            position: relative;
-            width: 280px;
-            height: 280px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    .theme-toggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: var(--card-bg);
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 10px;
+        border-radius: 50%;
+        cursor: pointer;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-gold);
+        backdrop-filter: blur(5px);
+        z-index: 100;
+    }
 
-        .outer-ring {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border: 1px solid var(--ring-color);
-            border-radius: 50%;
-        }
+    .header { text-align: center; margin-top: 40px; }
+    h1 { font-weight: 300; letter-spacing: 4px; text-transform: uppercase; font-size: 1.2rem; margin: 0; color: var(--accent-gold); }
+    .instruction { font-size: 0.85rem; color: var(--text-dim); margin-top: 8px; }
 
-        #compass {
-            position: relative;
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            transition: transform 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    .compass-area {
+        position: relative;
+        width: 280px;
+        height: 280px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-        .needle {
-            position: absolute;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(to top, transparent 50%, var(--accent-gold) 50%);
-            border-radius: 2px;
-        }
+    .outer-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 1px solid var(--ring-color);
+        border-radius: 50%;
+        box-shadow: 0 0 40px rgba(0,0,0,0.1);
+    }
 
-        .needle::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 20px solid var(--accent-gold);
-        }
+    #compass {
+        position: relative;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        transition: transform 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-        .kaaba-icon {
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            fill: var(--accent-gold);
-            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
-        }
+    .needle {
+        position: absolute;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to top, transparent 50%, var(--accent-gold) 50%);
+        border-radius: 2px;
+    }
 
-        .info-panel {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 20px;
-            width: 100%;
-            max-width: 320px;
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-            margin-bottom: 30px;
-        }
+    .needle::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 20px solid var(--accent-gold);
+    }
 
-        .angle-value { font-size: 2.5rem; font-weight: 700; display: block; margin: 5px 0; }
-        .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); }
+    .kaaba-icon {
+        position: absolute;
+        top: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        fill: var(--accent-gold);
+        filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+    }
 
-        #startBtn {
-            background: var(--accent-gold);
-            color: white;
-            border: none;
-            padding: 16px 40px;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
+    .info-panel {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 20px;
+        width: 100%;
+        max-width: 320px;
+        border: 1px solid rgba(255,255,255,0.1);
+        text-align: center;
+        margin-bottom: 20px;
+    }
 
-        .precision-tag {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-            font-size: 0.7rem;
-            margin-top: 10px;
-            display: none;
-        }
-    </style>
+    .angle-value { font-size: 2.5rem; font-weight: 700; display: block; margin: 5px 0; }
+    .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); }
+
+    #startBtn {
+        background: var(--accent-gold);
+        color: white;
+        border: none;
+        padding: 16px 40px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+        cursor: pointer;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .precision-tag {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        font-size: 0.7rem;
+        margin-top: 10px;
+        display: none;
+    }
+
+    .low-precision {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+</style>
+
+
 </head>
 <body>
 
-    <button class="theme-toggle" id="themeBtn">
-        <svg id="themeIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+<button class="theme-toggle" id="themeBtn" aria-label="Changer de thème">
+    <svg id="themeIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+</button>
+
+<div class="header">
+    <h1>Qibla Finder</h1>
+    <p class="instruction">Maintenez le téléphone à plat</p>
+</div>
+
+<div class="compass-area">
+    <div class="outer-ring"></div>
+    <div id="compass">
+        <svg class="kaaba-icon" width="40" height="40" viewBox="0 0 24 24">
+            <path d="M19,6L12,2L5,6V18L12,22L19,18V6M12,4.3L17,7.15V11L12,8.15L7,11V7.15L12,4.3M7,13L12,10.15L17,13V16.85L12,19.7L7,16.85V13Z"/>
         </svg>
-    </button>
-
-    <div class="header">
-        <h1>Qibla Finder</h1>
-        <p class="instruction">Maintenez le téléphone à plat</p>
+        <div class="needle"></div>
     </div>
+</div>
 
-    <div class="compass-area">
-        <div class="outer-ring"></div>
-        <div id="compass">
-            <svg class="kaaba-icon" width="40" height="40" viewBox="0 0 24 24">
-                <path d="M19,6L12,2L5,6V18L12,22L19,18V6M12,4.3L17,7.15V11L12,8.15L7,11V7.15L12,4.3M7,13L12,10.15L17,13V16.85L12,19.7L7,16.85V13Z"/>
-            </svg>
-            <div class="needle"></div>
-        </div>
+<div class="info-panel">
+    <span class="label">Direction de la Kaaba</span>
+    <span class="angle-value" id="qibla-display">--°</span>
+    <div id="status-text" style="font-size: 0.8rem; color: var(--text-dim);">En attente du signal GPS...</div>
+    <div id="precision" class="precision-tag">Précision : -- m</div>
+    
+    <div style="margin-top: 25px;">
+        <button id="startBtn">ACTIVER LES CAPTEURS</button>
     </div>
+</div>
 
-    <div class="info-panel">
-        <span class="label">Direction de la Kaaba</span>
-        <span class="angle-value" id="qibla-display">--°</span>
-        <div id="status-text" style="font-size: 0.8rem; color: var(--text-dim);">Recherche du signal...</div>
-        <div id="precision" class="precision-tag">Précision : -- m</div>
-        
-        <div style="margin-top: 25px;">
-            <button id="startBtn">DÉMARRER</button>
-        </div>
-    </div>
-
-    <script>
-        // --- GESTION DU THÈME ---
-        const themeBtn = document.getElementById('themeBtn');
-        const themeIcon = document.getElementById('themeIcon');
-        
-        function updateThemeIcon(isLight) {
-            if (isLight) {
-                themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
-            } else {
-                themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
-            }
+<script>
+    // --- THÈME ---
+    const themeBtn = document.getElementById('themeBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    function updateThemeIcon(isLight) {
+        if (isLight) {
+            themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+        } else {
+            themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
         }
+    }
 
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        updateThemeIcon(true);
+    }
+
+    themeBtn.addEventListener('click', () => {
+        let currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'light') {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'dark');
+            updateThemeIcon(false);
+        } else {
             document.documentElement.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
             updateThemeIcon(true);
         }
+    });
 
-        themeBtn.addEventListener('click', () => {
-            let currentTheme = document.documentElement.getAttribute('data-theme');
-            if (currentTheme === 'light') {
-                document.documentElement.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'dark');
-                updateThemeIcon(false);
-            } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-                localStorage.setItem('theme', 'light');
-                updateThemeIcon(true);
-            }
+    // --- SERVICE WORKER ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(err => console.error('Erreur SW:', err));
         });
+    }
 
-        // --- LOCALISATION & BOUSSOLE ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.error(err));
-            });
+    // --- BOUSSOLE ET GPS ---
+    const compass = document.getElementById('compass');
+    const startBtn = document.getElementById('startBtn');
+    const qiblaDisplay = document.getElementById('qibla-display');
+    const statusText = document.getElementById('status-text');
+    const precisionTag = document.getElementById('precision');
+
+    const KAABA = { lat: 21.422487, lng: 39.826206 };
+    let qiblaAngle = 0;
+    let watchId = null;
+
+    function getQiblaAngle(lat, lng) {
+        const phi1 = lat * Math.PI / 180;
+        const phi2 = KAABA.lat * Math.PI / 180;
+        const deltaL = (KAABA.lng - lng) * Math.PI / 180;
+        const y = Math.sin(deltaL);
+        const x = Math.cos(phi1) * Math.tan(phi2) - Math.sin(phi1) * Math.cos(deltaL);
+        return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    }
+
+    function startTracking() {
+        if (navigator.geolocation) {
+            watchId = navigator.geolocation.watchPosition(pos => {
+                const { latitude, longitude, accuracy } = pos.coords;
+                qiblaAngle = getQiblaAngle(latitude, longitude);
+                qiblaDisplay.innerText = Math.round(qiblaAngle) + "°";
+                precisionTag.innerText = `Précision : ±${Math.round(accuracy)}m`;
+                precisionTag.style.display = "inline-block";
+                statusText.innerText = accuracy > 50 ? "Signal faible..." : "Signal optimal";
+            }, err => {
+                statusText.innerText = "Erreur GPS : " + err.message;
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
+    }
 
-        const compass = document.getElementById('compass');
-        const startBtn = document.getElementById('startBtn');
-        const qiblaDisplay = document.getElementById('qibla-display');
-        const statusText = document.getElementById('status-text');
-        const precisionTag = document.getElementById('precision');
-
-        const KAABA = { lat: 21.422487, lng: 39.826206 };
-        let qiblaAngle = 0;
-
-        function getQiblaAngle(lat, lng) {
-            const phi1 = lat * Math.PI / 180;
-            const phi2 = KAABA.lat * Math.PI / 180;
-            const deltaL = (KAABA.lng - lng) * Math.PI / 180;
-            const y = Math.sin(deltaL);
-            const x = Math.cos(phi1) * Math.tan(phi2) - Math.sin(phi1) * Math.cos(deltaL);
-            return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    function handleRotation(event) {
+        let heading = null;
+        if (event.webkitCompassHeading) {
+            heading = event.webkitCompassHeading;
+        } else if (event.alpha !== null) {
+            heading = 360 - event.alpha;
         }
-
-        function startTracking() {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(pos => {
-                    const { latitude, longitude, accuracy } = pos.coords;
-                    qiblaAngle = getQiblaAngle(latitude, longitude);
-                    qiblaDisplay.innerText = Math.round(qiblaAngle) + "°";
-                    precisionTag.innerText = `Précision : ±${Math.round(accuracy)}m`;
-                    precisionTag.style.display = "inline-block";
-                    statusText.innerText = accuracy > 50 ? "Précision faible" : "Position acquise";
-                }, err => {
-                    statusText.innerText = "Erreur GPS: " + err.message;
-                }, { enableHighAccuracy: true });
-            }
+        if (heading !== null) {
+            const rotation = qiblaAngle - heading;
+            compass.style.transform = `rotate(${rotation}deg)`;
         }
+    }
 
-        function handleRotation(event) {
-            let heading = event.webkitCompassHeading || (360 - event.alpha);
-            if (heading !== undefined) {
-                const rotation = qiblaAngle - heading;
-                compass.style.transform = `rotate(${rotation}deg)`;
-            }
-        }
-
-        startBtn.addEventListener('click', async () => {
-            startTracking();
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    startBtn.addEventListener('click', async () => {
+        startTracking();
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            try {
                 const permission = await DeviceOrientationEvent.requestPermission();
                 if (permission === 'granted') {
                     window.addEventListener('deviceorientation', handleRotation, true);
                     startBtn.style.display = 'none';
                 }
-            } else {
-                window.addEventListener('deviceorientation', handleRotation, true);
-                startBtn.style.display = 'none';
-            }
-        });
-    </script>
+            } catch (e) { statusText.innerText = "Erreur capteur"; }
+        } else {
+            window.addEventListener('deviceorientation', handleRotation, true);
+            startBtn.style.display = 'none';
+        }
+    });
+</script>
+
+
 </body>
 </html>
