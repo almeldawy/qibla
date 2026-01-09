@@ -1,7 +1,7 @@
 {
   "name": "Qibla Pro Finder",
   "short_name": "Qibla Pro",
-  "description": "Trouvez la direction de la Kaaba avec précision grâce au GPS et à la boussole.",
+  "description": "Boussole précise pour trouver la direction de la Qibla.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
@@ -12,13 +12,13 @@
       "src": "icon-qibla-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     },
     {
       "src": "icon-qibla-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }
