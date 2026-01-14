@@ -293,17 +293,28 @@
     }
 
     function handleRotation(event) {
-        let heading = null;
-        if (event.webkitCompassHeading) {
-            heading = event.webkitCompassHeading;
-        } else if (event.alpha !== null) {
-            heading = 360 - event.alpha;
-        }
-        if (heading !== null) {
-            const rotation = qiblaAngle - heading;
-            compass.style.transform = `rotate(${rotation}deg)`;
-        }
+    let heading = null;
+
+    // Sur iPhone (iOS)
+    if (event.webkitCompassHeading) {
+        heading = event.webkitCompassHeading;
+    } 
+    // Sur Android
+    else if (event.alpha !== null) {
+        // Alpha donne la rotation autour de l'axe Z (quand le tel est à plat)
+        heading = 360 - event.alpha; 
     }
+
+    if (heading !== null) {
+        // On calcule l'angle final
+        // qiblaAngle = où est la Mecque par rapport au Nord
+        // heading = où est mon téléphone par rapport au Nord
+        const rotation = qiblaAngle - heading;
+        
+        // On utilise l'interpolation pour éviter que l'aiguille ne saute
+        compass.style.transform = `rotate(${rotation}deg)`;
+    }
+}
 
     startBtn.addEventListener('click', async () => {
         startTracking();
