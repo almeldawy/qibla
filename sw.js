@@ -2,22 +2,20 @@ const CACHE_NAME = 'qibla-v2';
 const ASSETS = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap'
 ];
 
-// Installation : on met les fichiers essentiels en cache
+// 1. Installation : On remplit le cache
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        // On essaie d'ajouter les ressources, mais on ne bloque pas si une échoue
-        return cache.addAll(ASSETS);
-      })
+      .then((cache) => cache.addAll(ASSETS))
       .then(() => self.skipWaiting())
   );
 });
 
-// Activation : on vide l'ancien cache si on change de version
+// 2. Nettoyage : On supprime les vieux caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -28,11 +26,16 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Stratégie : Réseau d'abord, sinon cache (pour être sûr d'avoir la dernière version)
+// 3. Stratégie optimisée : Cache d'abord, sinon Réseau
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
+    caches.match(event.request).then((cachedResponse) => {
+      // Si le fichier est dans le cache, on le renvoie immédiatement
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      // Sinon, on va le chercher sur internet
+      return fetch(event.request);
     })
   );
 });
